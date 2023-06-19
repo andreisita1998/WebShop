@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+</head>
+
+<body>
+<h1>Products</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Quantity</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="product : ${products}">
+        <td th:text="${product.id}"></td>
+        <td th:text="${product.name}"></td>
+        <td th:text="${product.price}"></td>
+        <td th:text="${product.quantity}"></td>
+
+    </tr>
+    </tbody>
+</table>
+
+<h2>Add Product</h2>
+<form id="addProductForm">
+    <label for="addProductName">Name:</label>
+    <input type="text" id="addProductName" name="name" required><br><br>
+
+    <label for="addProductPrice">Price:</label>
+    <input type="number" id="addProductPrice" name="price" step="0.01" required><br><br>
+
+    <label for="addProductQuantity">Quantity:</label>
+    <input type="number" id="addProductQuantity" name="quantity" required><br><br>
+
+    <button type="submit">Add Product</button>
+</form>
+
+<h2>Update Product</h2>
+<form id="updateProductForm">
+    <label for="updateProductId">Product ID:</label>
+    <input type="text" id="updateProductId" name="id" required><br><br>
+
+    <label for="updateProductName">Name:</label>
+    <input type="text" id="updateProductName" name="name" required><br><br>
+
+    <label for="updateProductPrice">Price:</label>
+    <input type="number" id="updateProductPrice" name="price" step="0.01" required><br><br>
+
+    <label for="updateProductQuantity">Quantity:</label>
+    <input type="number" id="updateProductQuantity" name="quantity" required><br><br>
+
+    <button type="submit">Update Product</button>
+</form>
+
+<h2>Delete Product</h2>
+<form id="deleteProductForm">
+    <label for="deleteProductId">Product ID:</label>
+    <input type="text" id="deleteProductId" name="id" required><br><br>
+
+    <button type="submit">Delete Product</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+        $(document).ready(function() {
+            // Get all products
+            $.ajax({
+                url: "/products",
+                type: "GET",
+                success: function(data) {
+                    var products = data;
+                    var tableBody = "";
+                    for (var i = 0; i < products.length; i++) {
+                        tableBody += "<tr>";
+                        tableBody += "<td>" + products[i].id + "</td>";
+                        tableBody += "<td>" + products[i].name + "</td>";
+                        tableBody += "<td>" + products[i].price + "</td>";
+                        tableBody += "<td>" + products[i].quantity + "</td>";
+                        tableBody += "<td><button onclick='updateProduct(" + products[i].id +
+                            ")'>Update</button>" +
+                            "<button onclick='deleteProduct(" + products[i].id + ")'>Delete</button></td>";
+                        tableBody += "</tr>";
+                    }
+                    $("#productTableBody").html(tableBody);
+                }
+            });
+
+            // Add product
+            $("#addProductForm").submit(function(event) {
+                event.preventDefault();
+                var product = {
+                    name: $("#addProductName").val(),
+                    price: $("#addProductPrice").val(),
+                    quantity: $("#addProductQuantity").val()
+                };
+
+                $.ajax({
+                    url: "/products",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(product),
+                    success: function() {
+                        location.reload();
+                    }
+                });
+            });
+
+            // Update product
+            function updateProduct(id) {
+                $.ajax({
+                    url: "/products/" + id,
+                    type: "GET",
+                    success: function(data) {
+                        $("#updateProductId").val(data.id);
+                        $("#updateProductName").val(data.name);
+                        $("#updateProductPrice").val(data.price);
+                        $("#updateProductQuantity").val(data.quantity);
+                    }
+                });
+            }
+
+            $("#updateProductForm").submit(function(event) {
+                event.preventDefault();
+                var updatedProduct = {
+                    id: $("#updateProductId").val(),
+                    name: $("#updateProductName").val(),
+                    price: $("#updateProductPrice").val(),
+                    quantity: $("#updateProductQuantity").val()
+                };
+
+                $.ajax({
+                    url: "/products/" + updatedProduct.id,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify(updatedProduct),
+                    success: function() {
+                        location.reload();
+                    }
+                });
+            });
+
+            // Delete product
+            function deleteProduct(id) {
+                if (confirm("Are you sure you want to delete this product?")) {
+                    $.ajax({
+                        url: "/products/" + id,
+                        type: "DELETE",
+                        success: function() {
+                            location.reload();
+                        }
+                    });
+                }
+            }
+
+            $("#deleteProductForm").submit(function(event) {
+                event.preventDefault();
+                var id = $("#deleteProductId").val();
+                if (confirm("Are you sure you want to delete this product?")) {
+                    $.ajax({
+                        url: "/products/" + id,
+                        type: "DELETE",
+                        success: function() {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
